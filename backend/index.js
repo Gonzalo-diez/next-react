@@ -3,12 +3,11 @@ import mongoose from "mongoose";
 import cors from "cors";
 import session from "express-session";
 import passport from "passport";
-import { Strategy as LocalStrategy } from "passport-local";
+import LocalStrategy from "passport-local";
 import 'dotenv/config.js';
 
 const app = express();
-const {MONGODB_URI, SECRET_KEY, RESAVE, SAVE} = process.env;
-
+const { MONGODB_URI, SECRET_KEY, RESAVE, SAVE } = process.env;
 
 // Conexión a la base de datos MongoDB
 mongoose.connect(MONGODB_URI, {
@@ -49,36 +48,9 @@ const productosSchema = new mongoose.Schema({
 
 const Productos = mongoose.model("Productos", productosSchema);
 
-
-// Configuración de Passport para autenticación local
-passport.use(
-    new LocalStrategy(
-        {
-            usernameField: "correo_electronico",
-            passwordField: "contrasena",
-        },
-        async (correo_electronico, contrasena, done) => {
-            try {
-                const user = await User.findOne({ correo_electronico }).exec();
-
-                if (!user || user.contrasena !== contrasena) {
-                    return done(null, false, { message: "Credenciales inválidas" });
-                }
-
-                return done(null, user);
-            } catch (err) {
-                return done(err);
-            }
-        }
-    )
-);
-
-passport.serializeUser((user, done) => {
-    done(null, user._id);
-});
-
 app.use(express.json());
 app.use(cors());
+
 app.use(
     session({
         secret: SECRET_KEY,
@@ -89,6 +61,43 @@ app.use(
 
 app.use(passport.initialize());
 app.use(passport.session());
+
+passport.use(new LocalStrategy(
+    {
+        usernameField: 'correo_electronico',
+        passwordField: 'contrasena'
+    },
+    async (correo_electronico, contrasena, done) => {
+        try {
+            const user = await User.findOne({ correo_electronico });
+
+            if (!user) {
+                return done(null, false, { message: 'Usuario no encontrado' });
+            }
+
+            if (user.contrasena !== contrasena) {
+                return done(null, false, { message: 'Contraseña incorrecta' });
+            }
+
+            return done(null, user);
+        } catch (err) {
+            return done(err);
+        }
+    }
+));
+
+passport.serializeUser((user, done) => {
+    done(null, user.id);
+});
+
+passport.deserializeUser(async (id, done) => {
+    try {
+        const user = await User.findById(id);
+        done(null, user);
+    } catch (err) {
+        done(err);
+    }
+});
 
 app.get("/", async (req, res) => {
     try {
@@ -134,7 +143,7 @@ app.get("/productos/detalle/:id", async (req, res) => {
 // Método para obtener los productos creados por el usuario autenticado (dashboard)
 app.get("/dashboard", (req, res) => {
     if (req.isAuthenticated()) {
-        const usuarioActual = req.user; 
+        const usuarioActual = req.user;
 
         Productos.find({ _id: usuarioActual._id })
             .exec()
@@ -184,57 +193,46 @@ app.post("/agregarProductos", async (req, res) => {
 });
 
 // Método de registro
-app.post("/registro", async (req, res, next) => {
-    const { nombre, apellido, correo_electronico, contrasena } = req.body;
-
-    try {
-        const newUser = new User({
-            nombre,
-            apellido,
-            correo_electronico,
-            contrasena,
-        });
-
-        await newUser.save();
-
-        passport.authenticate("local")(req, res, () => {
+app.post("/registro", async (req, res) => {
+    passport.authenticate('local', (err, user, info) => {
+        if (err) {
+            return res.status(500).json({ error: "Error en el registro", details: err.message });
+        }
+        if (!user) {
+            return res.status(400).json({ error: "El usuario ya existe" });
+        }
+        req.logIn(user, (err) => {
+            if (err) {
+                return res.status(500).json({ error: "Error al iniciar sesión" });
+            }
             return res.json({ message: "Usuario registrado!" });
         });
-    } catch (err) {
-        return next(err);
-    }
+    })(req, res);
 });
 
-// Método para realizar login
+// Método para realizar inicio de sesión
 app.post("/login", (req, res, next) => {
-    const { correo_electronico, contrasena } = req.body;
-
-    if (!correo_electronico || !contrasena) {
-        return res.status(400).json({ error: "Faltan campos obligatorios" });
-    }
-
-    passport.authenticate("local", (err, user, info) => {
+    passport.authenticate('local', (err, user, info) => {
         if (err) {
-            return next(err);
+            return res.status(500).json({ error: "Error en el inicio de sesión", details: err.message });
         }
         if (!user) {
             return res.status(401).json({ error: "Credenciales inválidas" });
         }
-
-        req.logIn(user, (loginErr) => {
-            if (loginErr) {
-                return next(loginErr);
+        req.logIn(user, (err) => {
+            if (err) {
+                return res.status(500).json({ error: "Error al iniciar sesión" });
             }
             return res.json({ message: "Inicio de sesión exitoso", usuario: user });
         });
     })(req, res, next);
 });
 
+// Método para cerrar sesión
 app.post("/logout", (req, res) => {
     req.logout();
     res.json({ message: "Cierre de sesión exitoso" });
 });
-
 
 // Método para actualizar un producto
 app.put("/productos/actualizarProducto/:id", async (req, res) => {

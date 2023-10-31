@@ -20,7 +20,9 @@ const RegistroForm = () => {
                 contrasena: contrasena,
             });
             if (res.status === 200) {
-                sessionStorage.setItem("isLoggedIn", "true");
+                if(res.data && res.data.isLoggedIn) {
+                    sessionStorage.setItem("isLoggedIn", "true");
+                }
                 router.push("/");
             }
         } catch (err) {
