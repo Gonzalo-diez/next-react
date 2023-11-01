@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { useState } from 'react';
 import AvatarDropdown from './avatar';
 
-const Menu = () => {
+const Menu = ({ isLoggedIn }) => {
     const [isOpen, setIsOpen] = useState(false);
 
     const toggleMenu = () => {
@@ -88,7 +88,7 @@ const Menu = () => {
                         Contacto
                     </Link>
                 </li>
-                <AvatarDropdown />
+                <AvatarDropdown isLoggedIn={isLoggedIn} />
             </ul>
         </nav>
     );

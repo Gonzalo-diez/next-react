@@ -2,10 +2,10 @@
 import React from 'react';
 import RegistroForm from '@/app/components/registroForm';
 
-const RegistroPage = () => {
+const RegistroPage = ({ isLoggedIn }) => {
   return (
     <div className="min-h-screen flex items-center justify-center">
-      <RegistroForm />
+      <RegistroForm isLoggedIn={isLoggedIn} />
     </div>
   );
 };

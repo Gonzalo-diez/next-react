@@ -3,12 +3,12 @@ import { useRouter } from 'next/navigation';
 import React, { useState } from 'react';
 import axios from 'axios';
 
-const RegistroForm = () => {
+const RegistroForm = ({ isLoggedIn }) => {
     const router = useRouter();
     const [nombre, setNombre] = useState('');
     const [apellido, setApellido] = useState('');
     const [email, setEmail] = useState('');
-    const [contrasena, setContrasena] = useState(''); 
+    const [contrasena, setContrasena] = useState('');
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -20,9 +20,7 @@ const RegistroForm = () => {
                 contrasena: contrasena,
             });
             if (res.status === 200) {
-                if(res.data && res.data.isLoggedIn) {
-                    sessionStorage.setItem("isLoggedIn", "true");
-                }
+                localStorage.setItem("isLoggedIn", "true");
                 router.push("/");
             }
         } catch (err) {

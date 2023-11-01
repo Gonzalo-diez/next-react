@@ -4,7 +4,7 @@ import Link from 'next/link';
 import React, { useState } from 'react';
 import axios from 'axios';
 
-const LoginForm = () => {
+const LoginForm = ({ isLoggedIn }) => {
     const router = useRouter();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -17,9 +17,7 @@ const LoginForm = () => {
                 contrasena: password,
             });
             if (res.status === 200) {
-                if(res.data && res.data.isLoggedIn) {
-                    sessionStorage.setItem("isLoggedIn", "true");
-                }
+                localStorage.setItem("isLoggedIn", "true");
                 router.push("/");
             }
         } catch (err) {

@@ -1,10 +1,12 @@
 "use client"
 import axios from 'axios';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { BiSolidUserCircle } from 'react-icons/bi';
 
 const AvatarDropdown = ({ isLoggedIn }) => {
+  const router = useRouter();
   const [isDropdownOpen, setDropdownOpen] = useState(false);
 
   const toggleDropdown = () => {
@@ -14,7 +16,7 @@ const AvatarDropdown = ({ isLoggedIn }) => {
   const handleLogOut = async () => {
     try {
       await axios.post("http://localhost:8800/logout");
-      sessionStorage.removeItem("isLoggedIn");
+      localStorage.removeItem("isLoggedIn");
       router.push("/");
     } catch (error) {
       console.log(error);

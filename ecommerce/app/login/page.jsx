@@ -2,10 +2,10 @@
 import React from 'react';
 import LoginForm from '@/app/components/loginForm';
 
-const LoginPage = () => {
+const LoginPage = ({ isLoggedIn }) => {
   return (
     <div className="min-h-screen flex items-center justify-center">
-      <LoginForm />
+      <LoginForm isLoggedIn={isLoggedIn} />
     </div>
   );
 };

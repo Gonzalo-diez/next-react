@@ -3,8 +3,7 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 
-export default function Home({ isLoggedIn }) {
-  console.log("isLoggedIn in Home:", isLoggedIn);
+const Home = ({ isLoggedIn }) => {
   const [productos, setProductos] = useState([]);
 
   useEffect(() => {
@@ -52,3 +51,5 @@ export default function Home({ isLoggedIn }) {
     </div>
   );
 }
+
+export default Home;

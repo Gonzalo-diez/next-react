@@ -228,11 +228,16 @@ app.post("/login", (req, res, next) => {
     })(req, res, next);
 });
 
-// Método para cerrar sesión
+// Método de log out o salir de sesión
 app.post("/logout", (req, res) => {
-    req.logout();
-    res.json({ message: "Cierre de sesión exitoso" });
-});
+    req.logout((err) => {
+      if (err) {
+        return res.status(500).json({ message: "Failed to log out" });
+      }
+      res.json({ message: "Logout successful" });
+    });
+  });
+  
 
 // Método para actualizar un producto
 app.put("/productos/actualizarProducto/:id", async (req, res) => {
